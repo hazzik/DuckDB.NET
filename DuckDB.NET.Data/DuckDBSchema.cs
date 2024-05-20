@@ -55,38 +55,20 @@ internal static class DuckDBSchema
         };
 
     private static DataTable GetRestrictions() =>
-        new(DbMetaDataCollectionNames.Restrictions)
-        {
-            Columns =
+        new DataTable(DbMetaDataCollectionNames.Restrictions)
             {
-                { "CollectionName", typeof(string) },
-                { "RestrictionName", typeof(string) },
-                { "RestrictionDefault", typeof(string) },
-                { "RestrictionNumber", typeof(int) }
-            },
-            Rows =
-            {
-                { DuckDbMetaDataCollectionNames.Tables, "Catalog", "table_catalog", 1 },
-                { DuckDbMetaDataCollectionNames.Tables, "Schema", "table_schema", 2 },
-                { DuckDbMetaDataCollectionNames.Tables, "Table", "table_name", 3 },
-                { DuckDbMetaDataCollectionNames.Tables, "TableType", "table_type", 4 },
-
-                { DuckDbMetaDataCollectionNames.Columns, "Catalog", "table_catalog", 1 },
-                { DuckDbMetaDataCollectionNames.Columns, "Schema", "table_schema", 2 },
-                { DuckDbMetaDataCollectionNames.Columns, "Table", "table_name", 3 },
-                { DuckDbMetaDataCollectionNames.Columns, "Column", "column_name", 4 },
-
-                { DuckDbMetaDataCollectionNames.ForeignKeys, "Catalog", "constraint_catalog", 1 },
-                { DuckDbMetaDataCollectionNames.ForeignKeys, "Schema", "constraint_schema", 2 },
-                { DuckDbMetaDataCollectionNames.ForeignKeys, "Table", "table_name", 3 },
-                { DuckDbMetaDataCollectionNames.ForeignKeys, "Constraint", "constraint_name", 4 },
-
-                { DuckDbMetaDataCollectionNames.Indexes, "Catalog", "constraint_catalog", 1 },
-                { DuckDbMetaDataCollectionNames.Indexes, "Schema", "constraint_schema", 2 },
-                { DuckDbMetaDataCollectionNames.Indexes, "Table", "table_name", 3 },
-                { DuckDbMetaDataCollectionNames.Indexes, "Constraint", "constraint_name", 4 },
-            },
-        };
+                Columns =
+                {
+                    { "CollectionName", typeof(string) },
+                    { "RestrictionName", typeof(string) },
+                    { "RestrictionDefault", typeof(string) },
+                    { "RestrictionNumber", typeof(int) }
+                },
+            }
+            .AddRestrictions(DuckDbMetaDataCollectionNames.Tables, TableRestrictions)
+            .AddRestrictions(DuckDbMetaDataCollectionNames.Columns, ColumnRestrictions)
+            .AddRestrictions(DuckDbMetaDataCollectionNames.ForeignKeys, ForeignKeyRestrictions)
+            .AddRestrictions(DuckDbMetaDataCollectionNames.Indexes, IndexesRestrictions);
 
     private static DataTable GetReservedWords(DuckDBConnection connection)
     {
@@ -217,6 +199,13 @@ internal static class DuckDBSchema
             table.EndLoadData();
         }
 
+        return table;
+    }
+
+    private static DataTable AddRestrictions(this DataTable table, string collectionName, string[] restrictions)
+    {
+        for (var index = 0; index < restrictions.Length; index++)
+            table.Rows.Add(collectionName, restrictions[index], restrictions[index], index + 1);
         return table;
     }
 }
